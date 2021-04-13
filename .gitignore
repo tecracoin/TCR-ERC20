@@ -1,0 +1,12 @@
+.solhint.json
+.vscode/
+bin/
+build/
+out/
+*.wsd
+migrations/
+
+node_modules
+openzeppelin
+
+package-lock.json
