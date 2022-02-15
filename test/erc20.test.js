@@ -1,9 +1,3 @@
-// using OpenZeppelin tests - way faster than truffle
-// use 'npm test' to run tests
-// need
-// npm install --save-dev @openzeppelin/test-environment mocha chai hardhat
-// to work
-
 const { accounts, contract } = require('@openzeppelin/test-environment');
 
 const {
@@ -15,9 +9,7 @@ const {
 
 const { ZERO_ADDRESS } = constants;
 
-// Setup Chai for 'expect' or 'should' style assertions (you only need one)
 const { expect } = require('chai');
-//require('chai').should();
 
 const TcrCoin = contract.fromArtifact('TcrToken');
 const upgMock = contract.fromArtifact('upgradedToken');
@@ -86,7 +78,7 @@ describe('TcrCoin', function () {
                 value: sto,
             });
         });
-        it('recipien have proper balance after transfer', async function () {
+        it('recipient have proper balance after transfer', async function () {
             expect(await this.token.balanceOf(recipient)).to.be.bignumber.equal(sto);
         });
         it('owner removes minter from role', async function () {
@@ -135,15 +127,15 @@ describe('TcrCoin', function () {
         it('owner add blacklister', async function () {
             await this.token.addBlacklister(blacklister, { from: owner });
         })
-        it('blaclister blackist pauser', async function () {
+        it('blaclister blacklist pauser', async function () {
             expectEvent(await this.token.addBlacklist(pauser, { from: blacklister }),
                 'AddedToBlacklist', { account: pauser })
         })
-        it('blackisted can not transfer', async function () {
+        it('blacklisted can not transfer', async function () {
             await expectRevert(this.token.transfer(blacklister, ten, { from: pauser }),
                 'Address on blacklist')
         })
-        it('owner burns balck tokens', async function () {
+        it('owner burns black tokens', async function () {
             expectEvent(await this.token.burnBlackFunds(pauser, { from: owner }),
                 'Transfer', {
                 from: pauser,
@@ -173,7 +165,7 @@ describe('TcrCoin', function () {
                 value: sto,
             })
         })
-        it('Use TrasnferFrom', async function () {
+        it('Use TransferFrom', async function () {
             let twoEvents = await this.token.transferFrom(recipient, anotherAccount, ten, { from: minter });
             expectEvent(twoEvents,
                 'Approval', {
@@ -216,7 +208,7 @@ describe('TcrCoin', function () {
                 value: one,
             })
         })
-        it('Bulk send differnt amounts many times', async function () {
+        it('Bulk send different amounts many times', async function () {
             let manyEvents = await this.token.methods['bulkTransfer(address[],uint256[])'](targetTable, bulkAmounts, { from: recipient });
             expectEvent(manyEvents,
                 'Transfer', {
@@ -335,7 +327,7 @@ describe('TcrCoin', function () {
             // send usdt to contract address
             this.usdt = await usdToken.new(_initialSupply, _name, _symbol, _decimals, { from: minter });
         })
-        it('Trasnfer rouge tokens', async function () {
+        it('Transfer rouge tokens', async function () {
             expectEvent(await this.usdt.transfer(this.token.address, ten, { from: minter }),
                 'Transfer', {
                 from: minter,

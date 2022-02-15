@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity 0.8.2;
+pragma solidity 0.8.10;
 
 // interface need to claim rouge tokens from contract and handle upgraded functions
 abstract contract IERC20 {
@@ -152,9 +152,10 @@ contract TcrToken {
     }
 
     function burnFrom(address from, uint256 amount) external {
-        require(_allowances[msg.sender][from] >= amount, ERROR_ATL);
+        uint256 current = _allowances[from][msg.sender];
+        require(current >= amount, ERROR_ATL);
         require(_balances[from] >= amount, ERROR_BTL);
-        _approve(msg.sender, from, _allowances[msg.sender][from] - amount);
+        _approve(from, msg.sender, current - amount);
         _burn(from, amount);
     }
 
@@ -218,7 +219,7 @@ contract TcrToken {
         isBlacklistAdmin[user] = false;
     }
 
-    modifier onlyBlacklister {
+    modifier onlyBlacklister() {
         require(isBlacklistAdmin[msg.sender], "Not a Blacklister");
         _;
     }
@@ -300,7 +301,7 @@ contract TcrToken {
     //
     // "mint"
     //
-    modifier onlyMinter {
+    modifier onlyMinter() {
         require(isMinter[msg.sender], "Not a Minter");
         _;
     }
@@ -323,7 +324,7 @@ contract TcrToken {
     //
     // "ownable"
     //
-    modifier onlyOwner {
+    modifier onlyOwner() {
         require(msg.sender == owner, ERROR_OO);
         _;
     }
@@ -349,12 +350,12 @@ contract TcrToken {
         isPauser[user] = false;
     }
 
-    modifier onlyPauser {
+    modifier onlyPauser() {
         require(isPauser[msg.sender], "Not a Pauser");
         _;
     }
 
-    modifier notPaused {
+    modifier notPaused() {
         require(!paused, "Contract is paused");
         _;
     }
@@ -384,23 +385,22 @@ contract TcrToken {
         bytes32 s
     ) external {
         require(deadline >= block.timestamp, "permit: EXPIRED");
-        bytes32 digest =
-            keccak256(
-                abi.encodePacked(
-                    "\x19\x01",
-                    DOMAIN_SEPARATOR,
-                    keccak256(
-                        abi.encode(
-                            PERMIT_TYPEHASH,
-                            user,
-                            spender,
-                            value,
-                            nonces[user]++,
-                            deadline
-                        )
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(
+                    abi.encode(
+                        PERMIT_TYPEHASH,
+                        user,
+                        spender,
+                        value,
+                        nonces[user]++,
+                        deadline
                     )
                 )
-            );
+            )
+        );
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(
             recoveredAddress != address(0) && recoveredAddress == user,
@@ -463,12 +463,13 @@ contract TcrToken {
         address to,
         uint256 amount
     ) private {
-        require(_allowances[from][spender] >= amount, ERROR_ATL);
+        uint256 current = _allowances[from][spender];
+        require(current >= amount, ERROR_ATL);
         require(_balances[from] >= amount, ERROR_BTL);
 
         // exception for Uniswap "approve forever"
         if (_allowances[from][spender] != type(uint256).max) {
-            _approve(from, spender, _allowances[from][spender] - amount);
+            _approve(from, spender, current - amount);
         }
 
         _transfer(from, to, amount);
